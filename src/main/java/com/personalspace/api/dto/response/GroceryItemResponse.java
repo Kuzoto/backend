@@ -9,7 +9,7 @@ public record GroceryItemResponse(
         String name,
         String quantity,
         boolean checked,
-        List<GroceryLabelResponse> labels,
+        List<GroceryItemLabelResponse> labels,
         Instant createdAt,
         Instant updatedAt
 ) {}

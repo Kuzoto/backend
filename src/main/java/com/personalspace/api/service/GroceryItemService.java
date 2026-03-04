@@ -2,8 +2,8 @@ package com.personalspace.api.service;
 
 import com.personalspace.api.dto.request.CreateGroceryItemRequest;
 import com.personalspace.api.dto.request.UpdateGroceryItemRequest;
+import com.personalspace.api.dto.response.GroceryItemLabelResponse;
 import com.personalspace.api.dto.response.GroceryItemResponse;
-import com.personalspace.api.dto.response.GroceryLabelResponse;
 import com.personalspace.api.exception.ResourceNotFoundException;
 import com.personalspace.api.model.entity.GroceryItem;
 import com.personalspace.api.model.entity.GroceryItemLabel;
@@ -117,9 +117,9 @@ public class GroceryItemService {
     }
 
     private GroceryItemResponse toGroceryItemResponse(GroceryItem item) {
-        List<GroceryLabelResponse> labelResponses = item.getLabels().stream()
-                .map(label -> new GroceryLabelResponse(label.getId(), label.getName(), label.getCreatedAt()))
-                .sorted(Comparator.comparing(GroceryLabelResponse::name))
+        List<GroceryItemLabelResponse> labelResponses = item.getLabels().stream()
+                .map(label -> new GroceryItemLabelResponse(label.getId(), label.getName(), label.getCreatedAt()))
+                .sorted(Comparator.comparing(GroceryItemLabelResponse::name))
                 .toList();
 
         return new GroceryItemResponse(
