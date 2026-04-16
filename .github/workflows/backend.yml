@@ -51,4 +51,4 @@ jobs:
           TEXT="${EMOJI} **Backend CI** | ${STATUS} | branch: \`${BRANCH}\` | ${ACTOR}: ${SHORT_MSG}"
           curl -s -X POST "$WEBHOOK" \
             -H 'Content-Type: application/json' \
-            --data-binary "$(jq -n --arg t "$TEXT" '{text: $t}')"
+            --data-binary "$(jq -n --arg t "$TEXT" '{text: $t, username: "ame"}')"
