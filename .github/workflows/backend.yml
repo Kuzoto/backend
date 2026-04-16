@@ -8,9 +8,6 @@ jobs:
   build-and-test:
     name: Build & Test (Spring Boot)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - uses: actions/checkout@v4
@@ -26,9 +23,9 @@ jobs:
         run: chmod +x mvnw
 
       - name: Create dummy .env for AI service
-        # AiService uses @Value("${ai.api-key}") — the full Spring context test
-        # (ApiApplicationTests) will fail to load without these keys present.
-        # The test profile already covers DB and JWT; only AI keys need a placeholder.
+        # AiService has @Value constructor injection for ai.api-key/base-url/model.
+        # ApiApplicationTests loads the full Spring context and fails without these keys.
+        # The test profile covers DB and JWT; only AI keys need a placeholder here.
         run: |
           cat > .env << 'EOF'
           AI_API_KEY=ci-dummy-key
@@ -37,7 +34,6 @@ jobs:
           EOF
 
       - name: Build and run tests
-        id: build
         run: ./mvnw clean package -B
 
       - name: Notify Mattermost
