@@ -1,0 +1,58 @@
+name: Backend CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Build & Test (Spring Boot)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Make Maven wrapper executable
+        run: chmod +x mvnw
+
+      - name: Create dummy .env for AI service
+        # AiService uses @Value("${ai.api-key}") — the full Spring context test
+        # (ApiApplicationTests) will fail to load without these keys present.
+        # The test profile already covers DB and JWT; only AI keys need a placeholder.
+        run: |
+          cat > .env << 'EOF'
+          AI_API_KEY=ci-dummy-key
+          AI_BASE_URL=https://ci-dummy.example.com
+          AI_MODEL=ci-dummy-model
+          EOF
+
+      - name: Build and run tests
+        id: build
+        run: ./mvnw clean package -B
+
+      - name: Notify Mattermost
+        if: always()
+        env:
+          WEBHOOK: ${{ secrets.MATTERMOST_WEBHOOK_URL }}
+          STATUS: ${{ job.status }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message || github.event.pull_request.title }}
+        run: |
+          EMOJI=$( [ "$STATUS" = "success" ] && echo "✅" || echo "❌" )
+          BRANCH=$( [ "${{ github.event_name }}" = "pull_request" ] \
+            && echo "${{ github.head_ref }}" || echo "${{ github.ref_name }}" )
+          SHORT_MSG=$(echo "$COMMIT_MSG" | head -c 80)
+          TEXT="${EMOJI} **Backend CI** | ${STATUS} | branch: \`${BRANCH}\` | ${ACTOR}: ${SHORT_MSG}"
+          curl -s -X POST "$WEBHOOK" \
+            -H 'Content-Type: application/json' \
+            --data-binary "$(jq -n --arg t "$TEXT" '{text: $t}')"
