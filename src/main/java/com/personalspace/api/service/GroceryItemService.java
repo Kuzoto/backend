@@ -103,6 +103,11 @@ public class GroceryItemService {
         item.setChecked(!item.isChecked());
         GroceryItem saved = groceryItemRepository.save(item);
 
+        if (saved.isChecked() && !groceryItemRepository.existsByGroceryListAndCheckedFalse(list)) {
+            list.setArchived(true);
+            groceryListRepository.save(list);
+        }
+
         return toGroceryItemResponse(saved);
     }
 
